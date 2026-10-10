@@ -1,15 +1,53 @@
 classDiagram
-    %% Replace the placeholders below with your actual classes, attributes, methods, and relationships.
-    %% Keep this file updated so it matches your final implementation.
-
-    class ClassName {
-        +type attribute
-        +method() returnType
+    class Owner {
+        +name: str
+        +preferences: list
+        +update_preferences(preferences)
     }
 
-    class AnotherClass {
-        +type attribute
-        +method() returnType
+    class Pet {
+        +name: str
+        +species: str
+        +tasks: list
+        +add_task(task)
+        +remove_task(task)
     }
 
-    ClassName --> AnotherClass : relationship
+    class CareTask {
+        +title: str
+        +duration_minutes: int
+        +priority: str
+    }
+
+    class Scheduler {
+        +create_daily_plan(owner, pet, start_time, time_budget_minutes) DailyPlan
+    }
+
+    class DailyPlan {
+        +plan_date: date
+        +items: list
+        +notes: list
+        +add_item(item)
+        +get_total_planned_minutes() int
+    }
+
+    class PlanItem {
+        +task: CareTask
+        +start_time: time
+        +end_time: time
+        +reason: str
+    }
+
+    Owner "1" --> "1" Pet : has (v1)
+    Pet "1" *-- "0..*" CareTask : tracks
+    Scheduler ..> Owner : reads preferences
+    Scheduler ..> Pet : reads tasks
+    Scheduler ..> DailyPlan : creates
+    DailyPlan "1" *-- "0..*" PlanItem : contains
+    PlanItem --> CareTask : schedules
+
+    %% A DailyPlan covers one date, from 00:00 up to (but not past) 24:00.
+    %% The time budget starts at start_time and is capped by the time remaining until midnight.
+    %% Higher priority tasks come first; preferences are soft tie-breakers for equal priorities.
+    %% Tasks that do not fit are noted.
+    %% CareTask priority is low, medium, or high. Category is omitted because title is sufficient.
