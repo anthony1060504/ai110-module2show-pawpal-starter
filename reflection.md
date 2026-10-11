@@ -7,13 +7,15 @@
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
-My initial UML design included six classes. Owner stores the owner’s name and preferences, while Pet stores basic pet information and manages its care tasks. Each CareTask has a title, duration, and priority. Scheduler uses the owner’s preferences, a selected pet, and the available time to create a DailyPlan. The plan contains timed PlanItems, each of which records a task’s start and end times and why it was included.
+My initial UML design included four classes: Owner, Pet, Task, and Scheduler. Owner stores the owner’s name and preferences and can have multiple pets. Pet stores basic pet information and manages its tasks. Each Task stores its title, duration, and priority, along with its scheduling status, start and end times, and a reason. Scheduler creates a one-day schedule for a selected pet using the owner’s preferences, the start time, and the available time budget. Higher-priority tasks are scheduled first, preferences help order tasks with equal priority, and tasks that do not fit are marked with a reason. I kept the design simple by representing the schedule on the Task objects instead of adding separate plan classes.
 
 
 **b. Design changes**
 
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
+
+Yes. While translating the UML into the Python skeleton, I clarified the scheduler’s time constraints. I renamed `available_minutes` to `time_budget_minutes` to show that it applies from the selected start time, and specified that the schedule must also end by midnight. I also clarified that task priority sets the ordering, while owner preferences are soft tie-breakers for tasks with equal priority. These changes made the scheduler’s expected behavior less ambiguous before implementing its logic.
 
 ---
 

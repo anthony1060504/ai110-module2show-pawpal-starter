@@ -1,53 +1,42 @@
 classDiagram
     class Owner {
         +name: str
-        +preferences: list
+        +preferences: list[str]
+        +pets: list[Pet]
+        +add_pet(pet)
         +update_preferences(preferences)
     }
 
     class Pet {
         +name: str
         +species: str
-        +tasks: list
+        +tasks: list[Task]
         +add_task(task)
         +remove_task(task)
     }
 
-    class CareTask {
+    class Task {
         +title: str
         +duration_minutes: int
         +priority: str
-    }
-
-    class Scheduler {
-        +create_daily_plan(owner, pet, start_time, time_budget_minutes) DailyPlan
-    }
-
-    class DailyPlan {
-        +plan_date: date
-        +items: list
-        +notes: list
-        +add_item(item)
-        +get_total_planned_minutes() int
-    }
-
-    class PlanItem {
-        +task: CareTask
-        +start_time: time
-        +end_time: time
+        +scheduled: bool
+        +start_time: time (optional)
+        +end_time: time (optional)
         +reason: str
     }
 
-    Owner "1" --> "1" Pet : has (v1)
-    Pet "1" *-- "0..*" CareTask : tracks
+    class Scheduler {
+        +create_daily_schedule(owner, pet, start_time, time_budget_minutes) list[Task]
+    }
+
+    Owner "1" --> "0..*" Pet : owns
+    Pet "1" *-- "0..*" Task : tracks
     Scheduler ..> Owner : reads preferences
     Scheduler ..> Pet : reads tasks
-    Scheduler ..> DailyPlan : creates
-    DailyPlan "1" *-- "0..*" PlanItem : contains
-    PlanItem --> CareTask : schedules
+    Scheduler ..> Task : orders and schedules
 
-    %% A DailyPlan covers one date, from 00:00 up to (but not past) 24:00.
+    %% Generate a schedule for one selected pet and one day; each Pet belongs to one Owner.
     %% The time budget starts at start_time and is capped by the time remaining until midnight.
-    %% Higher priority tasks come first; preferences are soft tie-breakers for equal priorities.
-    %% Tasks that do not fit are noted.
-    %% CareTask priority is low, medium, or high. Category is omitted because title is sufficient.
+    %% Higher-priority tasks come first; preferences are soft tie-breakers for equal priorities.
+    %% Scheduled tasks have start/end times; tasks that do not fit have scheduled=false and a reason.
+    %% Task priority is low, medium, or high. Separate DailyPlan and PlanItem classes are omitted.
