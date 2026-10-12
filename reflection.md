@@ -44,10 +44,16 @@ One tradeoff is that the scheduler creates each pet’s schedule independently, 
 - How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
 - What kinds of prompts or questions were most helpful?
 
+I used AI as a coding partner during design, implementation, and documentation. It helped me compare my initial UML with the finished classes, connect the Scheduler’s sorting and conflict detection to the Streamlit interface, add focused tests, and describe the app’s behavior in the README.
+
+The most helpful prompts were specific and grounded in my code, such as asking whether the UML matched pawpal_system.py or how to present a detected conflict clearly to a pet owner. Asking for focused checks also helped: I verified the UI changes with tests and checked the README’s CLI example against main.py instead of relying on generated descriptions alone.
+
 **b. Judgment and verification**
 
 - Describe one moment where you did not accept an AI suggestion as-is.
 - How did you evaluate or verify what the AI suggested?
+
+One decision was whether the app should warn about overlaps across pets. AI suggested retaining each pet’s schedule so the UI could compare them, but I chose to check only the selected pet’s newly generated schedule. The app stores one active schedule, so comparing other pets’ task times could rely on stale data. I checked the app’s session-state flow and tested both overlapping and non-overlapping schedules to verify that the warnings matched the current schedule.
 
 ---
 
@@ -57,6 +63,10 @@ One tradeoff is that the scheduler creates each pet’s schedule independently, 
 
 - What behaviors did you test?
 - Why were these tests important?
+
+I tested task completion and recurrence, adding and removing pets’ tasks, owner filtering by pet and completion status, and scheduling behavior such as priority ordering, owner preferences, due dates, time budgets, and the midnight limit. I also tested chronological sorting and conflict detection, including overlaps, adjacent tasks, completed tasks, and unscheduled tasks. The Streamlit tests cover adding a pet and task, generating a schedule, and showing both conflict warnings and the no-conflict message.
+
+These tests matter because they check the scheduling rules and the UI together, including boundary cases that could otherwise produce misleading times or warnings. The full suite passed with 24 tests.
 
 **b. Confidence**
 

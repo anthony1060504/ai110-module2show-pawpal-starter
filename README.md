@@ -92,7 +92,10 @@ pytest
 # Run with coverage:
 pytest --cov
 ```
+
+```
 The PawPal tests cover task completion and recurrence, owner/pet task management and filtering, schedule eligibility and priority, time-budget and midnight boundaries, chronological sorting, and conflict detection, including duplicate intervals.
+```
 
 Sample test output:
 
@@ -110,6 +113,10 @@ tests\test_pawpal.py ......................                                     
 ==================================================================== 23 passed in 1.11s ====================================================================
 ```
 
+```
+Confidence: 4/5 stars. All 23 tests passed, including the app test. The result supports confidence in the covered behaviors, though it cannot guarantee reliability for untested cases.
+```
+
 ## 📐 Smarter Scheduling
 
 | Feature | Method(s) | Notes |
@@ -124,14 +131,54 @@ tests\test_pawpal.py ......................                                     
 
 | Due-date scheduling | `Scheduler.create_daily_schedule(..., schedule_date=None)` | Excludes completed tasks and tasks due after the selected schedule date, retaining excluded tasks with a reason. Applies task durations within the time budget and midnight limit. |
 
+
+## Features
+
+- **Priority- and preference-aware planning:** Schedules eligible tasks by priority, uses owner preferences to break priority ties, and preserves task order for remaining ties.
+- **Time and due-date constraints:** Fits task durations within the available time budget and before midnight. Completed, not-yet-due, or over-budget tasks remain visible with an explanation.
+- **Chronological sorting:** Displays tasks by start time, with unscheduled tasks last; equal start times retain their original order.
+- **Conflict warnings:** Warns when scheduled, incomplete tasks for the selected pet have overlapping time ranges. Adjacent tasks are allowed, and the app asks the owner to review the times rather than rescheduling automatically.
+- **Task filtering:** Filters by pet name and completion status; pet-name matching ignores case and surrounding whitespace, and supplied filters are combined.
+- **Recurring task support:** The task model supports one-time, daily, and weekly tasks. Completing a daily or weekly task creates a fresh occurrence due one or seven days later, and the pet adds that occurrence to its task list.
+
+
 ## 📸 Demo Walkthrough
 
-Describe your app in numbered steps so a reader can follow along without watching a video:
+PawPal+ lets an owner add pets, enter care tasks with durations and priorities, and generate a daily schedule from a chosen start time and time budget.
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+1. Enter the owner's name, add a pet and species, then add tasks such as walks, meals, or medication.
+2. Choose the active pet and set the schedule start time and available time budget.
+3. Select **Generate schedule** to view tasks in chronological order, including each task's status, start and end time, and an explanation when it could not be scheduled.
+4. Review any overlap warning. The Streamlit app checks the selected pet's schedule and asks the owner to review conflicting times; it does not automatically reschedule tasks.
+5. Run `python main.py` to see a two-pet CLI example. It also demonstrates cross-pet conflict detection and filtering after a task is marked complete.
 
-**Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
+The scheduler prioritizes tasks by priority, uses owner preferences to break priority ties, respects due dates and the time budget, and does not schedule tasks past midnight. Sorting is stable, with unscheduled tasks last. The CLI example below shows the overlap between Biscuit's Training and Whiskers' Breakfast.
+
+```text
+$ python main.py
+Today's Schedule
+Owner: Jordan
+
+Biscuit (Golden Retriever)
+  08:00-08:30 | Morning walk (30 min, high)
+  08:30-08:40 | Breakfast (10 min, high)
+  08:40-08:55 | Training (15 min, medium)
+
+Whiskers (Cat)
+  08:45-08:55 | Breakfast (10 min, high)
+  08:55-09:15 | Playtime (20 min, medium)
+  09:15-09:30 | Grooming (15 min, low)
+
+Conflict warnings
+  Warning: Biscuit's Training (08:40-08:55) overlaps with Whiskers's Breakfast (08:45-08:55).
+
+Task filters (after marking Training complete)
+Completed tasks
+  Training (Biscuit)
+
+Incomplete tasks for Biscuit
+  08:00 | Morning walk
+  08:30 | Breakfast
+```
+
+

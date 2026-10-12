@@ -131,7 +131,8 @@ if active_pet is not None:
 
     schedule_signature = (active_pet_index, start_time, int(time_budget))
     if st.button("Generate schedule", disabled=not active_pet.tasks, key="generate_schedule"):
-        scheduled_tasks = Scheduler().create_daily_schedule(
+        scheduler = Scheduler()
+        scheduled_tasks = scheduler.create_daily_schedule(
             owner=owner,
             pet=active_pet,
             start_time=start_time,
@@ -139,7 +140,8 @@ if active_pet is not None:
         )
         st.session_state.schedule = {
             "signature": schedule_signature,
-            "tasks": scheduled_tasks,
+            "tasks": scheduler.sort_by_time(scheduled_tasks),
+            "conflicts": scheduler.detect_conflicts([active_pet]),
         }
 
     schedule = st.session_state.get("schedule")
@@ -157,5 +159,12 @@ if active_pet is not None:
                 for task in schedule["tasks"]
             ]
         )
+        if schedule["conflicts"]:
+            for conflict in schedule["conflicts"]:
+                st.warning(
+                    f"{conflict} Please review these times and adjust one task if needed."
+                )
+        else:
+            st.success("No overlapping tasks found in this schedule.")
     elif active_pet.tasks:
         st.info("Generate a schedule to see planned task times.")

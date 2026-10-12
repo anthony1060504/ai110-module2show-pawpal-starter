@@ -1,0 +1,51 @@
+classDiagram
+    class Owner {
+        +name: str
+        +preferences: list~str~
+        +pets: list~Pet~
+        +add_pet(pet: Pet): None
+        +update_preferences(preferences: list~str~): None
+        +filter_tasks(pet_name: str?, completed: bool?): list~Task~
+    }
+
+    class Pet {
+        +name: str
+        +species: str
+        +tasks: list~Task~
+        +add_task(task: Task): None
+        +remove_task(task: Task): None
+        +mark_task_complete(task: Task, today: date?): Task?
+    }
+
+    class Task {
+        +title: str
+        +duration_minutes: int
+        +priority: str
+        +scheduled: bool = false
+        +start_time: time?
+        +end_time: time?
+        +reason: str
+        +completed: bool = false
+        +frequency: str = once
+        +due_date: date
+        +__post_init__(): None
+        +mark_complete(today: date?): Task?
+    }
+
+    class Scheduler {
+        +sort_by_time(tasks: list~Task~): list~Task~
+        +detect_conflicts(pets: list~Pet~): list~str~
+        +create_daily_schedule(owner: Owner, pet: Pet, start_time: time, time_budget_minutes: int, schedule_date: date?): list~Task~
+    }
+
+    Owner "1" --> "0..*" Pet : owns
+    Pet "1" *-- "0..*" Task : tracks
+    Scheduler ..> Owner : reads preferences
+    Scheduler ..> Pet : schedules and checks
+    Scheduler ..> Task : orders and updates
+    Task ..> Task : creates next occurrence
+
+    %% A question mark marks optional input or nullable field/return values.
+    %% Task.mark_complete returns a new recurring task; Pet.mark_task_complete adds it.
+    %% Scheduler mutates task scheduling state and returns tasks sorted by start time.
+    %% Conflicts are reported for strict overlaps; adjacent intervals are allowed.
