@@ -26,10 +26,14 @@ Yes. While translating the UML into the Python skeleton, I clarified the schedul
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
 - How did you decide which constraints mattered most?
 
+The scheduler treats the start time, time budget, and midnight as hard limits. Each task’s duration determines whether it fits; completed tasks and tasks not yet due are skipped, and tasks that do not fit are left unscheduled with a reason. Eligible tasks are ordered by priority high, medium, then low. Owner preferences only break ties between tasks at the same priority, so a preferred low-priority task does not jump ahead of a high-priority one. I chose this order to give important tasks first access to limited time while still letting preferences personalize the schedule. Schedules are built per pet, and cross-pet overlaps are reported as warnings rather than automatically rescheduled.
+
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
+
+One tradeoff is that the scheduler creates each pet’s schedule independently, so tasks can overlap across pets. It reports those overlaps as warnings instead of automatically moving tasks. This keeps scheduling simple and predictable, while letting the owner decide whether an overlap is actually a problem and which task to move.
 
 ---
 

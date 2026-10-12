@@ -60,6 +60,28 @@ Whiskers (Cat)
   08:10-08:30 | Playtime (20 min, medium)
   08:30-08:45 | Grooming (15 min, low)
 ```
+```
+Today's Schedule
+Owner: Jordan
+
+Biscuit (Golden Retriever)
+  08:00-08:30 | Morning walk (30 min, high)
+  08:30-08:40 | Breakfast (10 min, high)
+  08:40-08:55 | Training (15 min, medium)
+
+Whiskers (Cat)
+  08:00-08:10 | Breakfast (10 min, high)
+  08:10-08:30 | Playtime (20 min, medium)
+  08:30-08:45 | Grooming (15 min, low)
+
+Task filters (after marking Training complete)
+Completed tasks
+  Training (Biscuit)
+
+Incomplete tasks for Biscuit
+  08:00 | Morning walk
+  08:30 | Breakfast
+```
 
 ## 🧪 Testing PawPal+
 
@@ -79,14 +101,13 @@ Sample test output:
 
 ## 📐 Smarter Scheduling
 
-> Fill in once you've implemented scheduling logic.
-
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Task sorting | `Scheduler.sort_by_time(tasks)` | Returns a stable chronological copy; tasks without a start time appear last. `Scheduler.create_daily_schedule(...)` selects tasks by priority, then owner preference, then original order. |
+| Filtering | `Owner.filter_tasks(pet_name=None, completed=None)` | Filters by exact, case-insensitive pet name and/or completion status; supplied filters are combined, and original pet/task order is preserved. |
+| Conflict detection | `Scheduler.detect_conflicts(pets)` | Checks scheduled, incomplete tasks with start and end times for overlapping intervals. Returns warning messages; adjacent intervals are allowed and schedules are not changed. |
+| Recurring tasks | `Task.__post_init__()`, `Task.mark_complete(today=None)`, `Pet.mark_task_complete(task, today=None)` | Supports `once`, `daily`, and `weekly` frequency. Completing a daily or weekly task creates a fresh occurrence due one or seven days later; `Pet.mark_task_complete` adds it to the pet's task list. |
+| Due-date scheduling | `Scheduler.create_daily_schedule(..., schedule_date=None)` | Excludes completed tasks and tasks due after the selected schedule date, retaining excluded tasks with a reason. Applies task durations within the time budget and midnight limit. |
 
 ## 📸 Demo Walkthrough
 
