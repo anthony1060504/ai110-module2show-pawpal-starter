@@ -92,11 +92,22 @@ pytest
 # Run with coverage:
 pytest --cov
 ```
+The PawPal tests cover task completion and recurrence, owner/pet task management and filtering, schedule eligibility and priority, time-budget and midnight boundaries, chronological sorting, and conflict detection, including duplicate intervals.
 
 Sample test output:
 
 ```
-# Paste your pytest output here
+(.venv) PS C:\Users\antho\ai110-module1show-gameglitchinvestigator-starter\ai110-module2show-pawpal-starter> python -m pytest
+=================================================================== test session starts ====================================================================
+platform win32 -- Python 3.14.7, pytest-9.1.1, pluggy-1.6.0
+rootdir: C:\Users\antho\ai110-module1show-gameglitchinvestigator-starter\ai110-module2show-pawpal-starter
+plugins: anyio-4.15.1
+collected 23 items
+
+tests\test_app.py .                                                                                                                                   [  4%]
+tests\test_pawpal.py ......................                                                                                                           [100%]
+
+==================================================================== 23 passed in 1.11s ====================================================================
 ```
 
 ## 📐 Smarter Scheduling
@@ -104,9 +115,13 @@ Sample test output:
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
 | Task sorting | `Scheduler.sort_by_time(tasks)` | Returns a stable chronological copy; tasks without a start time appear last. `Scheduler.create_daily_schedule(...)` selects tasks by priority, then owner preference, then original order. |
+
 | Filtering | `Owner.filter_tasks(pet_name=None, completed=None)` | Filters by exact, case-insensitive pet name and/or completion status; supplied filters are combined, and original pet/task order is preserved. |
+
 | Conflict detection | `Scheduler.detect_conflicts(pets)` | Checks scheduled, incomplete tasks with start and end times for overlapping intervals. Returns warning messages; adjacent intervals are allowed and schedules are not changed. |
+
 | Recurring tasks | `Task.__post_init__()`, `Task.mark_complete(today=None)`, `Pet.mark_task_complete(task, today=None)` | Supports `once`, `daily`, and `weekly` frequency. Completing a daily or weekly task creates a fresh occurrence due one or seven days later; `Pet.mark_task_complete` adds it to the pet's task list. |
+
 | Due-date scheduling | `Scheduler.create_daily_schedule(..., schedule_date=None)` | Excludes completed tasks and tasks due after the selected schedule date, retaining excluded tasks with a reason. Applies task durations within the time budget and midnight limit. |
 
 ## 📸 Demo Walkthrough

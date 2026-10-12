@@ -29,6 +29,20 @@ def test_pet_completion_creates_daily_occurrence_for_next_day() -> None:
 	assert pet.tasks == [task, next_occurrence]
 
 
+def test_pet_completion_does_not_repeat_completed_recurring_task() -> None:
+	today = date(2026, 10, 11)
+	pet = Pet("Mochi", "dog")
+	task = Task("Medication", 5, "high", frequency="daily", due_date=today)
+	pet.add_task(task)
+
+	first_occurrence = pet.mark_task_complete(task, today)
+	second_occurrence = pet.mark_task_complete(task, today)
+
+	assert first_occurrence is not None
+	assert second_occurrence is None
+	assert pet.tasks == [task, first_occurrence]
+
+
 def test_pet_completion_creates_weekly_occurrence_seven_days_later() -> None:
 	today = date(2026, 10, 11)
 	pet = Pet("Mochi", "dog")
@@ -174,6 +188,69 @@ def test_schedule_orders_tasks_and_respects_time_budget() -> None:
 	assert low_priority_task.reason == "Does not fit within the available time budget."
 
 
+def test_schedule_with_no_tasks_returns_empty_list() -> None:
+	tasks = Scheduler().create_daily_schedule(
+		Owner("Jordan"), Pet("Mochi", "dog"), time(8, 0), 60
+	)
+
+	assert tasks == []
+
+
+def test_schedule_allows_tasks_to_fill_budget_exactly() -> None:
+	owner = Owner("Jordan")
+	pet = Pet("Mochi", "dog")
+	first_task = Task("Breakfast", 20, "high")
+	second_task = Task("Walk", 10, "high")
+	pet.add_task(first_task)
+	pet.add_task(second_task)
+
+	tasks = Scheduler().create_daily_schedule(owner, pet, time(8, 0), 30)
+
+	assert tasks == [first_task, second_task]
+	assert first_task.start_time == time(8, 0)
+	assert first_task.end_time == time(8, 20)
+	assert second_task.start_time == time(8, 20)
+	assert second_task.end_time == time(8, 30)
+	assert first_task.scheduled
+	assert second_task.scheduled
+
+
+def test_schedule_does_not_schedule_tasks_past_midnight() -> None:
+	today = date(2026, 10, 11)
+	owner = Owner("Jordan")
+	pet = Pet("Mochi", "dog")
+	first_task = Task("Late walk", 10, "high", due_date=today)
+	second_task = Task("Late snack", 5, "high", due_date=today)
+	pet.add_task(first_task)
+	pet.add_task(second_task)
+
+	tasks = Scheduler().create_daily_schedule(
+		owner, pet, time(23, 50), 30, schedule_date=today
+	)
+
+	assert tasks == [first_task, second_task]
+	assert first_task.scheduled
+	assert first_task.start_time == time(23, 50)
+	assert first_task.end_time == time(0, 0)
+	assert not second_task.scheduled
+	assert second_task.reason == "Does not fit before midnight."
+
+
+def test_schedule_prefers_owner_preference_for_equal_priority_tasks() -> None:
+	owner = Owner("Jordan", preferences=["walk"])
+	pet = Pet("Mochi", "dog")
+	other_task = Task("Feeding", 10, "high")
+	preferred_task = Task("Walk", 10, "high")
+	pet.add_task(other_task)
+	pet.add_task(preferred_task)
+
+	tasks = Scheduler().create_daily_schedule(owner, pet, time(8, 0), 20)
+
+	assert tasks == [preferred_task, other_task]
+	assert preferred_task.start_time == time(8, 0)
+	assert other_task.start_time == time(8, 10)
+
+
 def test_sort_by_time_orders_tasks_and_keeps_unscheduled_last() -> None:
 	scheduler = Scheduler()
 	late_task = Task("Playtime", 20, "medium", start_time=time(9, 0))
@@ -225,6 +302,37 @@ def test_detect_conflicts_reports_overlapping_tasks_for_same_pet() -> None:
 	assert len(warnings) == 1
 	assert "Mochi's Walk (08:00-08:30)" in warnings[0]
 	assert "Mochi's Medication (08:20-08:30)" in warnings[0]
+
+
+def test_detect_conflicts_reports_tasks_with_identical_times() -> None:
+	scheduler = Scheduler()
+	pet = Pet("Mochi", "dog")
+	pet.add_task(
+		Task(
+			"Walk",
+			30,
+			"high",
+			scheduled=True,
+			start_time=time(8, 0),
+			end_time=time(8, 30),
+		)
+	)
+	pet.add_task(
+		Task(
+			"Medication",
+			30,
+			"high",
+			scheduled=True,
+			start_time=time(8, 0),
+			end_time=time(8, 30),
+		)
+	)
+
+	warnings = scheduler.detect_conflicts([pet])
+
+	assert len(warnings) == 1
+	assert "Mochi's Walk (08:00-08:30)" in warnings[0]
+	assert "Mochi's Medication (08:00-08:30)" in warnings[0]
 
 
 def test_detect_conflicts_reports_overlaps_across_pets() -> None:
